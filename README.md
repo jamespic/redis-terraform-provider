@@ -58,7 +58,7 @@ Provider configuration attributes (`addr`, `password`, `username`, `db`) can all
 
 ```shell
 git clone <this repo>
-cd redis-terraform-provider
+cd terraform-provider-redis
 go install
 ```
 

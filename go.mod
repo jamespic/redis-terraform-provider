@@ -1,4 +1,4 @@
-module github.com/jamespic/redis-terraform-provider
+module github.com/jamespic/terraform-provider-redis
 
 go 1.25.8
 
