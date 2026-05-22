@@ -16,8 +16,8 @@ Manages a Redis hash (`HSET`). On update, fields removed from the configuration 
 resource "redis_hash" "example" {
   key = "user:42"
   fields = {
-    name  = "Alice"
-    email = "alice@example.com"
+    name  = "Ozzy"
+    email = "ozzy@example.com"
     role  = "admin"
   }
 }

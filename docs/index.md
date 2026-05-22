@@ -17,6 +17,12 @@ provider "redis" {
   # password = "secret"   # or set REDIS_PASSWORD
   # username = "default"  # or set REDIS_USERNAME (Redis 6+ ACL)
   # db       = 0
+
+  # TLS — enable when connecting to Redis over an encrypted channel
+  # tls = true
+
+  # Disable certificate verification — only for dev/test, never in production
+  # tls_insecure_skip_verify = true
 }
 ```
 
@@ -28,4 +34,6 @@ provider "redis" {
 - `addr` (String) Redis server address in `host:port` form. Falls back to the `REDIS_ADDR` environment variable, then `localhost:6379`.
 - `db` (Number) Redis database index (0–15). Defaults to `0`.
 - `password` (String, Sensitive) Redis password. Falls back to the `REDIS_PASSWORD` environment variable.
+- `tls` (Boolean) Enable TLS for the connection. Falls back to the `REDIS_TLS` environment variable (`true`/`false`). Defaults to `false`.
+- `tls_insecure_skip_verify` (Boolean) Disable TLS certificate verification. Only takes effect when `tls` is `true`. Falls back to the `REDIS_TLS_INSECURE_SKIP_VERIFY` environment variable (`true`/`false`). **Not recommended in production.** Defaults to `false`.
 - `username` (String) Redis username (Redis 6+ ACL). Falls back to the `REDIS_USERNAME` environment variable.

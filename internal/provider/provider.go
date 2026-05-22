@@ -5,6 +5,7 @@ package provider
 
 import (
 	"context"
+	"crypto/tls"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -25,10 +26,12 @@ type RedisProvider struct {
 
 // RedisProviderModel describes the provider data model.
 type RedisProviderModel struct {
-	Addr     types.String `tfsdk:"addr"`
-	Password types.String `tfsdk:"password"`
-	Username types.String `tfsdk:"username"`
-	DB       types.Int64  `tfsdk:"db"`
+	Addr                  types.String `tfsdk:"addr"`
+	Password              types.String `tfsdk:"password"`
+	Username              types.String `tfsdk:"username"`
+	DB                    types.Int64  `tfsdk:"db"`
+	TLS                   types.Bool   `tfsdk:"tls"`
+	TLSInsecureSkipVerify types.Bool   `tfsdk:"tls_insecure_skip_verify"`
 }
 
 // New returns a function that creates a new RedisProvider instance.
@@ -62,6 +65,14 @@ func (p *RedisProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp
 			},
 			"db": schema.Int64Attribute{
 				MarkdownDescription: "Redis database index (0–15). Defaults to `0`.",
+				Optional:            true,
+			},
+			"tls": schema.BoolAttribute{
+				MarkdownDescription: "Enable TLS for the connection. Falls back to the `REDIS_TLS` environment variable (`true`/`false`). Defaults to `false`.",
+				Optional:            true,
+			},
+			"tls_insecure_skip_verify": schema.BoolAttribute{
+				MarkdownDescription: "Disable TLS certificate verification. Only takes effect when `tls` is `true`. Falls back to the `REDIS_TLS_INSECURE_SKIP_VERIFY` environment variable (`true`/`false`). **Not recommended in production.** Defaults to `false`.",
 				Optional:            true,
 			},
 		},
@@ -98,15 +109,32 @@ func (p *RedisProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		db = int(data.DB.ValueInt64())
 	}
 
-	client := redis.NewClient(&redis.Options{
+	useTLS := os.Getenv("REDIS_TLS") == "true"
+	if !data.TLS.IsNull() && !data.TLS.IsUnknown() {
+		useTLS = data.TLS.ValueBool()
+	}
+
+	skipVerify := os.Getenv("REDIS_TLS_INSECURE_SKIP_VERIFY") == "true"
+	if !data.TLSInsecureSkipVerify.IsNull() && !data.TLSInsecureSkipVerify.IsUnknown() {
+		skipVerify = data.TLSInsecureSkipVerify.ValueBool()
+	}
+
+	opts := &redis.Options{
 		Addr:     addr,
 		Password: password,
 		Username: username,
 		DB:       db,
-	})
+	}
 
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	if useTLS {
+		opts.TLSConfig = &tls.Config{
+			MinVersion:         tls.VersionTLS12,
+			InsecureSkipVerify: skipVerify, //nolint:gosec // controlled by explicit provider option
+		}
+	}
+
+	resp.DataSourceData = redis.NewClient(opts)
+	resp.ResourceData = redis.NewClient(opts)
 }
 
 func (p *RedisProvider) Resources(_ context.Context) []func() resource.Resource {
