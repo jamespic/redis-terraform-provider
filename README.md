@@ -24,7 +24,7 @@ All resources support `terraform import` using the Redis key as the import ID.
 terraform {
   required_providers {
     redis = {
-      source = "hashicorp/redis"
+      source = "jamespic/redis"
     }
   }
 }
@@ -41,8 +41,8 @@ resource "redis_string" "example" {
 resource "redis_hash" "example" {
   key = "user:42"
   fields = {
-    name  = "Alice"
-    email = "alice@example.com"
+    name  = "Ozzy"
+    email = "ozzy@example.com"
   }
 }
 
@@ -58,7 +58,7 @@ Provider configuration attributes (`addr`, `password`, `username`, `db`) can all
 
 ```shell
 git clone <this repo>
-cd redis-terraform-provider
+cd terraform-provider-redis
 go install
 ```
 
